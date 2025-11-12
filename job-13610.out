@@ -1,0 +1,27 @@
+Epoch 01/15 | train_loss=0.2581 acc=0.9686 | val_loss=0.2504 acc=0.9740 | time=32.1s
+  * New best acc 0.9740 at epoch 1, saved to outputs/best.pt
+Epoch 02/15 | train_loss=0.2290 acc=0.9842 | val_loss=0.2389 acc=0.9758 | time=31.3s
+  * New best acc 0.9758 at epoch 2, saved to outputs/best.pt
+Epoch 03/15 | train_loss=0.2256 acc=0.9858 | val_loss=0.2863 acc=0.9482 | time=31.1s
+Epoch 04/15 | train_loss=0.2174 acc=0.9912 | val_loss=0.2364 acc=0.9790 | time=31.4s
+  * New best acc 0.9790 at epoch 4, saved to outputs/best.pt
+Epoch 05/15 | train_loss=0.2149 acc=0.9919 | val_loss=0.2312 acc=0.9808 | time=31.7s
+  * New best acc 0.9808 at epoch 5, saved to outputs/best.pt
+Epoch 06/15 | train_loss=0.2111 acc=0.9941 | val_loss=0.2336 acc=0.9798 | time=31.3s
+Epoch 07/15 | train_loss=0.2069 acc=0.9963 | val_loss=0.2264 acc=0.9842 | time=31.7s
+  * New best acc 0.9842 at epoch 7, saved to outputs/best.pt
+Epoch 08/15 | train_loss=0.2050 acc=0.9977 | val_loss=0.2253 acc=0.9860 | time=31.4s
+  * New best acc 0.9860 at epoch 8, saved to outputs/best.pt
+Epoch 09/15 | train_loss=0.2037 acc=0.9979 | val_loss=0.2208 acc=0.9862 | time=31.2s
+  * New best acc 0.9862 at epoch 9, saved to outputs/best.pt
+Epoch 10/15 | train_loss=0.2017 acc=0.9989 | val_loss=0.2218 acc=0.9854 | time=31.4s
+Epoch 11/15 | train_loss=0.2008 acc=0.9991 | val_loss=0.2201 acc=0.9872 | time=31.0s
+  * New best acc 0.9872 at epoch 11, saved to outputs/best.pt
+Epoch 12/15 | train_loss=0.2002 acc=0.9993 | val_loss=0.2190 acc=0.9872 | time=31.0s
+Epoch 13/15 | train_loss=0.2001 acc=0.9994 | val_loss=0.2185 acc=0.9878 | time=31.4s
+  * New best acc 0.9878 at epoch 13, saved to outputs/best.pt
+Epoch 14/15 | train_loss=0.2001 acc=0.9995 | val_loss=0.2186 acc=0.9888 | time=31.2s
+  * New best acc 0.9888 at epoch 14, saved to outputs/best.pt
+Epoch 15/15 | train_loss=0.1996 acc=0.9998 | val_loss=0.2183 acc=0.9882 | time=31.4s
+[Summary] Best val acc=0.9888 at epoch=14
+Saved outputs/submission.csv

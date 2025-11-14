@@ -23,8 +23,11 @@ from torch import amp
 class TestFolder(Dataset):
     def __init__(self, root, transform):
         self.root = Path(root)
-        self.files = sorted([p for p in self.root.glob("*")
-                             if p.suffix.lower() in [".jpg", ".jpeg", ".png"]])
+        self.files = sorted(
+            [p for p in self.root.glob("*")
+             if p.suffix.lower() in [".jpg", ".jpeg", ".png"]],
+            key=lambda x: int(x.stem)
+        )
         self.transform = transform
 
     def __len__(self):
@@ -190,9 +193,6 @@ def build_transforms(img_size=224, dataset="dogs"):
 
 
 def prepare_dataloaders(args, device):
-    """
-    Returns: train_loader, val_loader, test_loader, num_classes, label_map
-    """
     img_size = args.img_size
     train_tf, test_tf = build_transforms(img_size, "dogs" if args.dataset == "dogs" else "cifar10")
 

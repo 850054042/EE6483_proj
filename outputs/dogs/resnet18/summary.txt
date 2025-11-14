@@ -1,5 +1,5 @@
 Best validation accuracy: 0.989000
-Best epoch: 11
+Best epoch: 14
 Backbone: resnet18
 Freeze backbone: False
 Use focal loss: False

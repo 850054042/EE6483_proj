@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=catdog
+#SBATCH --job-name=cifar
 #SBATCH --gpus=6000ada:1
 #SBATCH --time=1:00:00
 #SBATCH --output=job-%j.out

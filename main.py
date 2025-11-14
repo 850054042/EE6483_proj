@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Main training / evaluation / submission script
-
-Fixes included:
-- Move CIFAR10 "test-like" wrapper to top-level (picklable on Windows)
-- Add --workers flag (Windows default 0; Linux/GPU you can set 2~8)
-- Use torch.amp.autocast(device_type=...) to avoid deprecation warnings
-- Set pin_memory only when CUDA is available
-- Use persistent_workers only when num_workers > 0
-"""
 
 import os
 import random
@@ -58,7 +48,6 @@ class CIFAR10TestLike(Dataset):
     def __getitem__(self, i):
         x, _ = self.base[i]
         return x, str(i)
-
 
 def set_seed(seed=42):
     random.seed(seed)
@@ -166,7 +155,6 @@ def predict_to_csv(model, loader, device, out_csv, label_map=None):
             for i, p in enumerate(pred):
                 lab = int(label_map[p]) if label_map is not None else int(p)
                 w.writerow([img_id[i], lab])
-
 
 def build_transforms(img_size=224, dataset="dogs"):
     if dataset == "dogs":
@@ -281,8 +269,9 @@ def prepare_dataloaders(args, device):
         label_map = None
         return train_loader, val_loader, test_loader, num_classes, label_map
 
+
 def plot_lr_curve(lrs, save_path):
-    plt.figure(figsize=(6,4))
+    plt.figure(figsize=(6, 4))
     plt.plot(lrs)
     plt.title("Learning Rate Curve")
     plt.xlabel("Step")
@@ -294,7 +283,7 @@ def plot_lr_curve(lrs, save_path):
 
 
 def plot_loss_curve(train_losses, val_losses, save_path):
-    plt.figure(figsize=(6,4))
+    plt.figure(figsize=(6, 4))
     plt.plot(train_losses, label="Train Loss")
     plt.plot(val_losses, label="Val Loss")
     plt.title("Loss Curve")
@@ -308,7 +297,7 @@ def plot_loss_curve(train_losses, val_losses, save_path):
 
 
 def plot_acc_curve(train_accs, val_accs, save_path):
-    plt.figure(figsize=(6,4))
+    plt.figure(figsize=(6, 4))
     plt.plot(train_accs, label="Train Acc")
     plt.plot(val_accs, label="Val Acc")
     plt.title("Accuracy Curve")
@@ -359,7 +348,7 @@ def save_error_samples(model, loader, device, save_path, num_samples=12):
         img = img.permute(1, 2, 0)
         img = (img - img.min()) / (img.max() - img.min())
 
-        plt.subplot(rows, cols, i+1)
+        plt.subplot(rows, cols, i + 1)
         plt.imshow(img)
         plt.axis("off")
         plt.title(f"Pred: {wrong_preds[i]} | GT: {wrong_labels[i]}")
@@ -424,6 +413,7 @@ def plot_confusion_matrix(model, loader, device, class_names, save_path, normali
     plt.savefig(save_path)
     plt.close()
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", type=str, default="dogs", choices=["dogs", "cifar10"])
@@ -441,23 +431,30 @@ def main():
     parser.add_argument("--use_weighted_sampler", action="store_true")
     parser.add_argument("--predict", action="store_true", help="skip training, only predict with outputs/best.pt")
     parser.add_argument("--model_path", type=str, default=None)
-
     parser.add_argument("--workers", type=int, default=0 if os.name == "nt" else 2)
 
     args = parser.parse_args()
 
-    train_losses, val_losses = [], []
-    train_accs, val_accs = [], []
-    lrs = []
+    exp_name_parts = [args.backbone]
+    if args.freeze_backbone:
+        exp_name_parts.append("freeze_backbone")
+    if args.use_focal:
+        exp_name_parts.append("focal_loss")
 
-    output_dir = Path("outputs") / args.dataset
+    exp_name = "_".join(exp_name_parts)
+    output_dir = Path("outputs") / args.dataset / exp_name
     output_dir.mkdir(parents=True, exist_ok=True)
 
     model_path = output_dir / "best.pt"
     submission_path = output_dir / "submission.csv"
+    metrics_path = output_dir / "metrics.csv"
+    summary_path = output_dir / "summary.txt"
 
     args.model_path = str(model_path)
 
+    train_losses, val_losses = [], []
+    train_accs, val_accs = [], []
+    lrs = []
 
     set_seed(args.seed)
     device = get_device()
@@ -525,6 +522,21 @@ def main():
                 break
 
     print(f"[Summary] Best val acc={best_acc:.4f} at epoch={best_epoch}")
+
+    with open(metrics_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["epoch", "train_loss", "train_acc", "val_loss", "val_acc"])
+        for i, (tl, ta, vl, va) in enumerate(zip(train_losses, train_accs, val_losses, val_accs), start=1):
+            writer.writerow([i, tl, ta, vl, va])
+
+    with open(summary_path, "w") as f:
+        f.write(f"Best validation accuracy: {best_acc:.6f}\n")
+        f.write(f"Best epoch: {best_epoch}\n")
+        f.write(f"Backbone: {args.backbone}\n")
+        f.write(f"Freeze backbone: {args.freeze_backbone}\n")
+        f.write(f"Use focal loss: {args.use_focal}\n")
+        f.write(f"Use weighted sampler: {args.use_weighted_sampler}\n")
+
     model.load_state_dict(torch.load(args.model_path, map_location=device))
     predict_to_csv(model, test_loader, device, submission_path, label_map)
     print(f"Saved {submission_path}")
@@ -535,11 +547,12 @@ def main():
     plot_lr_curve(lrs, fig_dir / "lr_curve.png")
     plot_loss_curve(train_losses, val_losses, fig_dir / "loss_curve.png")
     plot_acc_curve(train_accs, val_accs, fig_dir / "acc_curve.png")
-
     save_error_samples(model, val_loader, device, fig_dir / "errors.png")
+    plot_confusion_matrix(model, val_loader, device, class_names,
+                          fig_dir / "confusion_matrix.png", normalize=True)
 
-    plot_confusion_matrix(model, val_loader, device, class_names, fig_dir / "confusion_matrix.png", normalize=True)
-
+    print(f"[INFO] Metrics saved to: {metrics_path}")
+    print(f"[INFO] Summary saved to: {summary_path}")
     print(f"[INFO] Figures saved to: {fig_dir}")
 
 

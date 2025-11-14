@@ -440,6 +440,8 @@ def main():
         exp_name_parts.append("freeze_backbone")
     if args.use_focal:
         exp_name_parts.append("focal_loss")
+    if args.use_weighted_sampler:
+        exp_name_parts.append("weighted_sampler")
 
     exp_name = "_".join(exp_name_parts)
     output_dir = Path("outputs") / args.dataset / exp_name
